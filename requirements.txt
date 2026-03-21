@@ -30,7 +30,7 @@ more-itertools==10.8.0
 narwhals==2.18.0
 
 # --- Currency ---
-currency.converter==0.5.5
+CurrencyConverter==0.18.15
 
 # --- PDF ---
 fpdf2==2.8.7
