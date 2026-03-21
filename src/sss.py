@@ -2953,11 +2953,11 @@ def perform_scan_close_values_days(reference_raw_data, reference_download_data, 
                     continue
                 symbol_data = pd.concat([#close_values_data['Low'  ][yahoo_symbol].fillna(method='ffill').rename('Low'),
                                          #close_values_data['High' ][yahoo_symbol].fillna(method='ffill').rename('High'),
-                                         close_values_data[f'Close.{symbol_index}' if symbol_index else 'Close'].fillna(method='bfill').rename('Close')], axis=1)
+                                         close_values_data[f'Close.{symbol_index}' if symbol_index else 'Close'].bfill().rename('Close')], axis=1)
             else:
                 symbol_data = pd.concat([#close_values_data['Low'  ][yahoo_symbol].fillna(method='ffill').rename('Low'),
                                          #close_values_data['High' ][yahoo_symbol].fillna(method='ffill').rename('High'),
-                                         close_values_data['Close'][yahoo_symbol].fillna(method='ffill').rename('Close')], axis=1)
+                                         close_values_data['Close'][yahoo_symbol].ffill().rename('Close')], axis=1)
 
             # Some values in the columns may be accidentaly divided by 100 by yfinance so fix that:
             for row in range(2 if reference_raw_data != None else 1, len(symbol_data['Close'])):
@@ -3087,9 +3087,9 @@ def perform_scan_close_values_weeks(reference_raw_data, reference_download_data,
             elif '.ST' in symbol: symbol = 'STO:' + symbol.replace('.ST', '')
 
             print('[perform_scan_close_values_weeks] scan_close_values: processing {}'.format(symbol))
-            symbol_data = pd.concat([close_values_data['Low'  ][yahoo_symbol].fillna(method='ffill').rename('Low'),
-                                     close_values_data['High' ][yahoo_symbol].fillna(method='ffill').rename('High'),
-                                     close_values_data['Close'][yahoo_symbol].fillna(method='ffill').rename('Close')], axis=1)
+            symbol_data = pd.concat([close_values_data['Low'  ][yahoo_symbol].ffill().rename('Low'),
+                                     close_values_data['High' ][yahoo_symbol].ffill().rename('High'),
+                                     close_values_data['Close'][yahoo_symbol].ffill().rename('Close')], axis=1)
 
             # Some values in the columns may be accidentaly divided by 100 by yfinance so fix that:
             for row in range(1, len(symbol_data['Close'])):
