@@ -1,0 +1,42 @@
+# ARGUS - Compiled from Source Requirements
+# Python 3.14.2 - Windows x64 - MSVC 19.38.33145
+# ================================================
+# These packages require compilation from source.
+# On Windows: must use x64 Native Tools Command Prompt for VS 2022
+# On Linux: gcc handles this automatically, no special prompt needed
+#
+# Build prerequisites (install these first):
+#   pip install meson-python meson ninja cython pybind11 versioneer setuptools setuptools_scm
+#   choco install pkgconfiglite  (Windows only - not needed on Linux)
+#
+# Compile in this order:
+
+# 1. numpy - requires: meson-python, meson, ninja, cython
+#    git clone https://github.com/numpy/numpy.git
+#    cd numpy && git submodule update --init
+#    pip install . --no-build-isolation
+numpy==2.5.0.dev0
+
+# 2. pandas - requires: versioneer
+#    git clone https://github.com/pandas-dev/pandas.git
+#    cd pandas && git submodule update --init
+#    pip install . --no-build-isolation
+pandas==3.1.0.dev0+441.gc6ee315053
+
+# 3. matplotlib - requires: pybind11, pkgconfiglite, setuptools_scm
+#    auto-installs: pillow, contourpy, cycler, fonttools, kiwisolver, pyparsing
+#    git clone https://github.com/matplotlib/matplotlib.git
+#    pip install . --no-build-isolation
+matplotlib==3.11.0.dev1997+g0f46f27f5
+
+# 4. psutil - straightforward C extension, no extra prereqs
+#    git clone https://github.com/giampaolo/psutil.git
+#    pip install . --no-build-isolation
+psutil==8.0.0
+
+# ================================================
+# KNOWN 3.14 BLOCKERS (revisit when updated):
+# ================================================
+# numba==0.61.2 - hard caps at <3.14, required by pandas-ta but optional
+#   pandas-ta installed with --no-deps to bypass this
+#   Monitor: https://github.com/numba/numba for 3.14 support
