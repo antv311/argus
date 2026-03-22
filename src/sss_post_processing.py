@@ -1,6 +1,9 @@
 #############################################################################
 #
-# Version 0.2.10 - Author: Asaf Ravid <asaf.rvd@gmail.com>
+# Version 0.3.0 - ARGUS Project
+# Original Author: Asaf Ravid <asaf.rvd@gmail.com>
+# Updated: Fixed pandas 2.x fragmented DataFrame PerformanceWarning
+#          Replaced repeated frame.insert() calls with single pd.concat()
 #
 #    Stock Screener and Scanner - based on yfinance
 #    Copyright (C) 2021 Asaf Ravid
@@ -20,7 +23,6 @@
 #
 #############################################################################
 
-
 import pandas as pd
 
 import sss
@@ -32,35 +34,51 @@ SSS_VALUE_COLUMN_NAME            = "sss_value"
 
 
 def process_engine_csv(path) -> object:
-    filename_path = path+"/"+sss_filenames.ENGINE_FILENAME
-    data          = pd.read_csv(filename_path+".csv", skiprows=[0])  # 1st row is a description row, irrelevant for the data processing
+    filename_path = path + "/" + sss_filenames.ENGINE_FILENAME
+    data          = pd.read_csv(filename_path + ".csv", skiprows=[0])  # 1st row is a description row, irrelevant for the data processing
 
-    # max_2_nlargest = data.nlargest(2,numerator_parameters_list+denominator_parameters_list)
-    [numerator_parameters_list,              denominator_parameters_list             ] = sss.get_used_parameters_names_in_core_equation(False)                                 # Take all values
-    [numerator_parameters_list_to_calculate, denominator_parameters_list_to_calculate] = sss.get_used_parameters_names_in_core_equation(sss_config.custom_sss_value_equation)  # Take all values for calculation of the sss_value
-    max_numerator_values                = data[numerator_parameters_list].max()
-    max_denominator_values              = data[denominator_parameters_list].max()
-    # max_numerator_values_to_calculate   = data[numerator_parameters_list_to_calculate].max()
-    # max_denominator_values_to_calculate = data[denominator_parameters_list_to_calculate].max()
+    [numerator_parameters_list,              denominator_parameters_list             ] = sss.get_used_parameters_names_in_core_equation(False)
+    [numerator_parameters_list_to_calculate, denominator_parameters_list_to_calculate] = sss.get_used_parameters_names_in_core_equation(sss_config.custom_sss_value_equation)
 
+    max_numerator_values   = data[numerator_parameters_list].max()
+    max_denominator_values = data[denominator_parameters_list].max()
 
+    # pandas 2.x fix: build all normalized columns first, then concat once
+    # Repeated frame.insert() inside loops causes PerformanceWarning: DataFrame is highly fragmented
+    normalized_columns = {}
+    sss_value_normalized = None
+
+    # Process numerator parameters
     for parameter in numerator_parameters_list:
-        new_column       = data[parameter] / max_numerator_values[parameter]
-        new_column_index = data.columns.get_loc(parameter)
-        data.insert(new_column_index+1, parameter+"_normalized",new_column)
-        if SSS_VALUE_NORMALIZED_COLUMN_NAME in data:
-            if parameter in numerator_parameters_list_to_calculate:  # and parameter != "effective_peg_ratio":
-                data[SSS_VALUE_NORMALIZED_COLUMN_NAME] = data[SSS_VALUE_NORMALIZED_COLUMN_NAME] + data[parameter+"_normalized"]
-        else:
-            new_column_index = data.columns.get_loc(SSS_VALUE_COLUMN_NAME)
-            data.insert(new_column_index + 1, SSS_VALUE_NORMALIZED_COLUMN_NAME, new_column)
+        normalized_col = data[parameter] / max_numerator_values[parameter]
+        normalized_columns[parameter + "_normalized"] = normalized_col
 
+        if sss_value_normalized is None:
+            sss_value_normalized = normalized_col.copy()
+        elif parameter in numerator_parameters_list_to_calculate:
+            sss_value_normalized = sss_value_normalized + normalized_col
+
+    # Process denominator parameters
     for parameter in denominator_parameters_list:
-        new_column       = data[parameter] / max_denominator_values[parameter]
-        new_column_index = data.columns.get_loc(parameter)
-        data.insert(new_column_index+1, parameter+"_normalized",new_column)
-        if parameter in denominator_parameters_list_to_calculate:
-            data[SSS_VALUE_NORMALIZED_COLUMN_NAME]     = data[SSS_VALUE_NORMALIZED_COLUMN_NAME] - data[parameter+"_normalized"]
+        normalized_col = data[parameter] / max_denominator_values[parameter]
+        normalized_columns[parameter + "_normalized"] = normalized_col
 
-    sorted_Data = data.sort_values(by=[SSS_VALUE_NORMALIZED_COLUMN_NAME])
-    sorted_Data.to_csv(filename_path+"_normalized.csv", index = False)
+        if parameter in denominator_parameters_list_to_calculate:
+            if sss_value_normalized is not None:
+                sss_value_normalized = sss_value_normalized - normalized_col
+
+    # Build normalized columns DataFrame and insert sss_value_normalized
+    normalized_df = pd.DataFrame(normalized_columns, index=data.index)
+    if sss_value_normalized is not None:
+        normalized_df.insert(0, SSS_VALUE_NORMALIZED_COLUMN_NAME, sss_value_normalized)
+
+    # Insert sss_value_normalized next to sss_value column in original data
+    sss_value_col_index = data.columns.get_loc(SSS_VALUE_COLUMN_NAME)
+
+    # Rebuild data with normalized columns interleaved - concat all at once
+    left  = data.iloc[:, :sss_value_col_index + 1]
+    right = data.iloc[:, sss_value_col_index + 1:]
+    data  = pd.concat([left, normalized_df, right], axis=1)
+
+    sorted_data = data.sort_values(by=[SSS_VALUE_NORMALIZED_COLUMN_NAME])
+    sorted_data.to_csv(filename_path + "_normalized.csv", index=False)
