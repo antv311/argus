@@ -71,7 +71,7 @@ import json
 import traceback
 
 from contextlib             import closing
-from dataclasses            import dataclass
+from dataclasses            import dataclass, fields
 from currency_converter     import CurrencyConverter  # pip install CurrencyConverter currency.converter
 from sys                    import platform
 from datetime import datetime
@@ -821,31 +821,44 @@ def check_quote_type(stock_data, research_mode):
 
 def check_sector(stock_data, sectors_list):
     # Fix stocks' Sectors to Correct Sector. yfinance sometimes has those mistaken
-    if   stock_data.symbol in ['BRMG.TA',   'RLCO.TA',   'DELT.TA',  'TDRN.TA',   'ECP.TA'      ]: stock_data.sector = 'Consumer Cyclical'
-    elif stock_data.symbol in ['EFNC.TA',   'GIBUI.TA',  'KMNK-M.TA'                            ]: stock_data.sector = 'Financial Services'
-    elif stock_data.symbol in ['DEDR-L.TA', 'GLEX-L',    'RPAC.TA',  'CDEV.TA',   'GNRS.TA'     ]: stock_data.sector = 'Energy'
-    elif stock_data.symbol in ['GLRS.TA',   'WILC.TA',   'MEDN.TA'                              ]: stock_data.sector = 'Consumer Defensive'
-    elif stock_data.symbol in ['POLY.TA',   'WTS.TA',    'YBOX.TA',  'PLAZ-L.TA', 'TIGBUR.TA',
-                               'ROTS.TA',   'AZRT.TA',   'SKBN.TA',  'DUNI.TA',   'DNYA.TA',
-                               'HGG.TA',    'YAAC.TA',   'LZNR.TA',  'LSCO.TA',   'MGRT.TA',
-                               'ALMA.TA',   'RTSN.TA',   'AVIV.TA',  'KRNV.TA',   'LAHAV.TA',
-                               'NERZ.TA',   'SNEL.TA'                                           ]: stock_data.sector = 'Real Estate'
-    elif stock_data.symbol in ['XTLB.TA',   'UNVO.TA',   'BONS.TA',  'CSURE.TA',  'GODM-M.TA',
-                               'ILX.TA',    'LCTX.TA',   'ORMP.TA'                              ]: stock_data.sector = 'Healthcare'
-    elif stock_data.symbol in ['BIRM.TA'                                                        ]: stock_data.sector = 'Industrials'
-    elif stock_data.symbol in ['IGLD-M.TA'                                                      ]: stock_data.sector = 'Communication Services'
-    elif stock_data.symbol in ['UNCT-L.TA', 'ROBO.TA',   'SONO.TA',  'SMAG-L.TA', 'STG.TA',
-                               'BIGT-L.TA', 'BIMT-L.TA', 'BVC.TA',   'ECPA.TA',   'ELLO.TA',
-                               'FLYS.TA',   'FORTY.TA',  'GFC-L.TA', 'IARG-L.TA', 'IBITEC-F.TA',
-                               'MBMX-M.TA', 'MITC.TA',   'SMAG-L.TA','ORBI.TA',   'ARYT.TA',
-                               'ORTC.TA',   'PERI.TA',   'PAYT.TA',  'TUZA.TA',   'ENLT.TA',
-                               'ESLT.TA',   'ORA.TA',    'ENRG.TA',  'RADA.TA',   'DORL.TA',
-                               'AUGN.TA',   'FRSX.TA',   'SLGN.TA',  'AQUA.TA',   'PNRG.TA',
-                               'BMLK.TA',   'MSKE.TA',   'HMGS.TA',  'HICN.TA',   'ARDM.TA',
-                               'ENOG.TA',   'BLND.TA',   'ARTS.TA',  'BNRG.TA',   'MIFT.TA',
-                               'SNFL.TA',   'KVSR.TA',   'SNEL.TA',  'SVRT.TA',   'GIX.TA',
-                               'NXFR.TA',   'FEAT-L.TA'                                         ]: stock_data.sector = 'Technology'
+    match stock_data.symbol:
+        case s if s in ['BRMG.TA', 'RLCO.TA', 'DELT.TA', 'TDRN.TA', 'ECP.TA']:
+            stock_data.sector = 'Consumer Cyclical'
+        case s if s in ['EFNC.TA', 'GIBUI.TA', 'KMNK-M.TA']:
+            stock_data.sector = 'Financial Services'
+        case s if s in ['DEDR-L.TA', 'GLEX-L', 'RPAC.TA', 'CDEV.TA', 'GNRS.TA']:
+            stock_data.sector = 'Energy'
+        case s if s in ['GLRS.TA', 'WILC.TA', 'MEDN.TA']:
+            stock_data.sector = 'Consumer Defensive'
+        case s if s in ['POLY.TA', 'WTS.TA', 'YBOX.TA', 'PLAZ-L.TA', 'TIGBUR.TA',
+                        'ROTS.TA', 'AZRT.TA', 'SKBN.TA', 'DUNI.TA', 'DNYA.TA',
+                        'HGG.TA', 'YAAC.TA', 'LZNR.TA', 'LSCO.TA', 'MGRT.TA',
+                        'ALMA.TA', 'RTSN.TA', 'AVIV.TA', 'KRNV.TA', 'LAHAV.TA',
+                        'NERZ.TA', 'SNEL.TA']:
+            stock_data.sector = 'Real Estate'
+        case s if s in ['XTLB.TA', 'UNVO.TA', 'BONS.TA', 'CSURE.TA', 'GODM-M.TA',
+                        'ILX.TA', 'LCTX.TA', 'ORMP.TA']:
+            stock_data.sector = 'Healthcare'
+        case 'BIRM.TA':
+            stock_data.sector = 'Industrials'
+        case 'IGLD-M.TA':
+            stock_data.sector = 'Communication Services'
+        case s if s in ['UNCT-L.TA', 'ROBO.TA', 'SONO.TA', 'SMAG-L.TA', 'STG.TA',
+                        'BIGT-L.TA', 'BIMT-L.TA', 'BVC.TA', 'ECPA.TA', 'ELLO.TA',
+                        'FLYS.TA', 'FORTY.TA', 'GFC-L.TA', 'IARG-L.TA', 'IBITEC-F.TA',
+                        'MBMX-M.TA', 'MITC.TA', 'SMAG-L.TA', 'ORBI.TA', 'ARYT.TA',
+                        'ORTC.TA', 'PERI.TA', 'PAYT.TA', 'TUZA.TA', 'ENLT.TA',
+                        'ESLT.TA', 'ORA.TA', 'ENRG.TA', 'RADA.TA', 'DORL.TA',
+                        'AUGN.TA', 'FRSX.TA', 'SLGN.TA', 'AQUA.TA', 'PNRG.TA',
+                        'BMLK.TA', 'MSKE.TA', 'HMGS.TA', 'HICN.TA', 'ARDM.TA',
+                        'ENOG.TA', 'BLND.TA', 'ARTS.TA', 'BNRG.TA', 'MIFT.TA',
+                        'SNFL.TA', 'KVSR.TA', 'SNEL.TA', 'SVRT.TA', 'GIX.TA',
+                        'NXFR.TA', 'FEAT-L.TA']:
+            stock_data.sector = 'Technology'
 
+    if len(sectors_list) and stock_data.sector not in sectors_list:
+        return False
+    return True
     if len(sectors_list) and stock_data.sector not in sectors_list:
         return False
     return True
@@ -955,290 +968,20 @@ def get_used_parameters_names_in_core_equation(custom_sss_value_equation):
         denominator_parameters_list = ["effective_profit_margin",  "effective_current_ratio",       "calculated_roa",       "calculated_roe",         "eqg_factor_effective",             "rqg_factor_effective", "altman_z_score_factor", "held_percent_insiders"                                     ]  # The higher the better
     return [numerator_parameters_list, denominator_parameters_list]
 
-
-# Rounding to non-None values + set None values to 0 for simplicity:
 def round_and_avoid_none_values(stock_data):
-    if stock_data.sss_value                                             != None: stock_data.sss_value                                             = round(stock_data.sss_value,                                             NUM_ROUND_DECIMALS)
-    if stock_data.annualized_revenue                                    != None: stock_data.annualized_revenue                                    = round(stock_data.annualized_revenue,                                    NUM_ROUND_DECIMALS)
-    if stock_data.annualized_revenue_bonus                              != None: stock_data.annualized_revenue_bonus                              = round(stock_data.annualized_revenue_bonus,                              NUM_ROUND_DECIMALS)
-    if stock_data.annualized_earnings                                   != None: stock_data.annualized_earnings                                   = round(stock_data.annualized_earnings,                                   NUM_ROUND_DECIMALS)
-    if stock_data.annualized_retained_earnings                          != None: stock_data.annualized_retained_earnings                          = round(stock_data.annualized_retained_earnings,                          NUM_ROUND_DECIMALS)
-    if stock_data.annualized_retained_earnings_bonus                    != None: stock_data.annualized_retained_earnings_bonus                    = round(stock_data.annualized_retained_earnings_bonus,                    NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_revenue                                   != None: stock_data.quarterized_revenue                                   = round(stock_data.quarterized_revenue,                                   NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_revenue_bonus                             != None: stock_data.quarterized_revenue_bonus                             = round(stock_data.quarterized_revenue_bonus,                             NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_earnings                                  != None: stock_data.quarterized_earnings                                  = round(stock_data.quarterized_earnings,                                  NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_earnings_bonus                            != None: stock_data.quarterized_earnings_bonus                            = round(stock_data.quarterized_earnings_bonus,                            NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_retained_earnings                         != None: stock_data.quarterized_retained_earnings                         = round(stock_data.quarterized_retained_earnings,                         NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_retained_earnings_bonus                   != None: stock_data.quarterized_retained_earnings_bonus                   = round(stock_data.quarterized_retained_earnings_bonus,                   NUM_ROUND_DECIMALS)
-    if stock_data.effective_earnings                                    != None: stock_data.effective_earnings                                    = round(stock_data.effective_earnings,                                    NUM_ROUND_DECIMALS)
-    if stock_data.effective_retained_earnings                           != None: stock_data.effective_retained_earnings                           = round(stock_data.effective_retained_earnings,                           NUM_ROUND_DECIMALS)
-    if stock_data.effective_revenue                                     != None: stock_data.effective_revenue                                     = round(stock_data.effective_revenue,                                     NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_revenue                              != None: stock_data.annualized_total_revenue                              = round(stock_data.annualized_total_revenue,                              NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_revenue_bonus                        != None: stock_data.annualized_total_revenue_bonus                        = round(stock_data.annualized_total_revenue_bonus,                        NUM_ROUND_DECIMALS)
-    if stock_data.annualized_net_income                                 != None: stock_data.annualized_net_income                                 = round(stock_data.annualized_net_income,                                 NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_revenue                             != None: stock_data.quarterized_total_revenue                             = round(stock_data.quarterized_total_revenue,                             NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_revenue_bonus                       != None: stock_data.quarterized_total_revenue_bonus                       = round(stock_data.quarterized_total_revenue_bonus,                       NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_net_income                                != None: stock_data.quarterized_net_income                                = round(stock_data.quarterized_net_income,                                NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_net_income_bonus                          != None: stock_data.quarterized_net_income_bonus                          = round(stock_data.quarterized_net_income_bonus,                          NUM_ROUND_DECIMALS)
-    if stock_data.effective_net_income                                  != None: stock_data.effective_net_income                                  = round(stock_data.effective_net_income,                                  NUM_ROUND_DECIMALS)
-    if stock_data.effective_total_revenue                               != None: stock_data.effective_total_revenue                               = round(stock_data.effective_total_revenue,                               NUM_ROUND_DECIMALS)
-    if stock_data.enterprise_value_to_revenue                           != None: stock_data.enterprise_value_to_revenue                           = round(stock_data.enterprise_value_to_revenue,                           NUM_ROUND_DECIMALS)
-    if stock_data.evr_effective                                         != None: stock_data.evr_effective                                         = round(stock_data.evr_effective,                                         NUM_ROUND_DECIMALS)
-    if stock_data.trailing_price_to_earnings                            != None: stock_data.trailing_price_to_earnings                            = round(stock_data.trailing_price_to_earnings,                            NUM_ROUND_DECIMALS)
-    if stock_data.forward_price_to_earnings                             != None: stock_data.forward_price_to_earnings                             = round(stock_data.forward_price_to_earnings,                             NUM_ROUND_DECIMALS)
-    if stock_data.effective_price_to_earnings                           != None: stock_data.effective_price_to_earnings                           = round(stock_data.effective_price_to_earnings,                           NUM_ROUND_DECIMALS)
-    if stock_data.trailing_12months_price_to_sales                      != None: stock_data.trailing_12months_price_to_sales                      = round(stock_data.trailing_12months_price_to_sales,                      NUM_ROUND_DECIMALS)
-    if stock_data.pe_effective                                          != None: stock_data.pe_effective                                          = round(stock_data.pe_effective,                                          NUM_ROUND_DECIMALS)
-    if stock_data.enterprise_value_to_ebitda                            != None: stock_data.enterprise_value_to_ebitda                            = round(stock_data.enterprise_value_to_ebitda,                            NUM_ROUND_DECIMALS)
-    if stock_data.effective_ev_to_ebitda                                != None: stock_data.effective_ev_to_ebitda                                = round(stock_data.effective_ev_to_ebitda,                                NUM_ROUND_DECIMALS)
-    if stock_data.ebitda                                                != None: stock_data.ebitda                                                = round(stock_data.ebitda,                                                NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_ebitd                                     != None: stock_data.quarterized_ebitd                                     = round(stock_data.quarterized_ebitd,                                     NUM_ROUND_DECIMALS)
-    if stock_data.annualized_ebitd                                      != None: stock_data.annualized_ebitd                                      = round(stock_data.annualized_ebitd,                                      NUM_ROUND_DECIMALS)
-    if stock_data.ebitd                                                 != None: stock_data.ebitd                                                 = round(stock_data.ebitd,                                                 NUM_ROUND_DECIMALS)
-    if stock_data.profit_margin                                         != None: stock_data.profit_margin                                         = round(stock_data.profit_margin,                                         NUM_ROUND_DECIMALS)
-    if stock_data.annualized_profit_margin                              != None: stock_data.annualized_profit_margin                              = round(stock_data.annualized_profit_margin,                              NUM_ROUND_DECIMALS)
-    if stock_data.annualized_profit_margin_boost                        != None: stock_data.annualized_profit_margin_boost                        = round(stock_data.annualized_profit_margin_boost,                        NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_profit_margin                             != None: stock_data.quarterized_profit_margin                             = round(stock_data.quarterized_profit_margin,                             NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_profit_margin_boost                       != None: stock_data.quarterized_profit_margin_boost                       = round(stock_data.quarterized_profit_margin_boost,                       NUM_ROUND_DECIMALS)
-    if stock_data.effective_profit_margin                               != None: stock_data.effective_profit_margin                               = round(stock_data.effective_profit_margin,                               NUM_ROUND_DECIMALS)
-    if stock_data.held_percent_institutions                             != None: stock_data.held_percent_institutions                             = round(stock_data.held_percent_institutions,                             NUM_ROUND_DECIMALS)
-    if stock_data.held_percent_insiders                                 != None: stock_data.held_percent_insiders                                 = round(stock_data.held_percent_insiders,                                 NUM_ROUND_DECIMALS)
-    if stock_data.forward_eps                                           != None: stock_data.forward_eps                                           = round(stock_data.forward_eps,                                           NUM_ROUND_DECIMALS)
-    if stock_data.trailing_eps                                          != None: stock_data.trailing_eps                                          = round(stock_data.trailing_eps,                                          NUM_ROUND_DECIMALS)
-    if stock_data.previous_close                                        != None: stock_data.previous_close                                        = round(stock_data.previous_close,                                        NUM_ROUND_DECIMALS)
-    if stock_data.trailing_eps_percentage                               != None: stock_data.trailing_eps_percentage                               = round(stock_data.trailing_eps_percentage,                               NUM_ROUND_DECIMALS)
-    if stock_data.price_to_book                                         != None: stock_data.price_to_book                                         = round(stock_data.price_to_book,                                         NUM_ROUND_DECIMALS)
-    if stock_data.shares_outstanding                                    != None: stock_data.shares_outstanding                                    = round(stock_data.shares_outstanding,                                    NUM_ROUND_DECIMALS)
-    if stock_data.net_income_to_common_shareholders                     != None: stock_data.net_income_to_common_shareholders                     = round(stock_data.net_income_to_common_shareholders,                     NUM_ROUND_DECIMALS)
-    if stock_data.nitcsh_to_shares_outstanding                          != None: stock_data.nitcsh_to_shares_outstanding                          = round(stock_data.nitcsh_to_shares_outstanding,                          NUM_ROUND_DECIMALS)
-    if stock_data.employees                                             != None: stock_data.employees                                             = int(  stock_data.employees                                                                )
-    if stock_data.enterprise_value                                      != None: stock_data.enterprise_value                                      = int(  stock_data.enterprise_value                                                         )
-    if stock_data.market_cap                                            != None: stock_data.market_cap                                            = int(  stock_data.market_cap                                                               )
-    if stock_data.nitcsh_to_num_employees                               != None: stock_data.nitcsh_to_num_employees                               = round(stock_data.nitcsh_to_num_employees,                               NUM_ROUND_DECIMALS)
-    if stock_data.eqg                                                   != None: stock_data.eqg                                                   = round(stock_data.eqg,                                                   NUM_ROUND_DECIMALS)
-    if stock_data.rqg                                                   != None: stock_data.rqg                                                   = round(stock_data.rqg,                                                   NUM_ROUND_DECIMALS)
-    if stock_data.eqg_yoy                                               != None: stock_data.eqg_yoy                                               = round(stock_data.eqg_yoy,                                               NUM_ROUND_DECIMALS)
-    if stock_data.rqg_yoy                                               != None: stock_data.rqg_yoy                                               = round(stock_data.rqg_yoy,                                               NUM_ROUND_DECIMALS)
-    if stock_data.niqg_yoy                                              != None: stock_data.niqg_yoy                                              = round(stock_data.niqg_yoy,                                              NUM_ROUND_DECIMALS)
-    if stock_data.trqg_yoy                                              != None: stock_data.trqg_yoy                                              = round(stock_data.trqg_yoy,                                              NUM_ROUND_DECIMALS)
-    if stock_data.eqg_effective                                         != None: stock_data.eqg_effective                                         = round(stock_data.eqg_effective,                                         NUM_ROUND_DECIMALS)
-    if stock_data.eqg_factor_effective                                  != None: stock_data.eqg_factor_effective                                  = round(stock_data.eqg_factor_effective,                                  NUM_ROUND_DECIMALS)
-    if stock_data.rqg_effective                                         != None: stock_data.rqg_effective                                         = round(stock_data.rqg_effective,                                         NUM_ROUND_DECIMALS)
-    if stock_data.rqg_factor_effective                                  != None: stock_data.rqg_factor_effective                                  = round(stock_data.rqg_factor_effective,                                  NUM_ROUND_DECIMALS)
-    if stock_data.price_to_earnings_to_growth_ratio                     != None: stock_data.price_to_earnings_to_growth_ratio                     = round(stock_data.price_to_earnings_to_growth_ratio,                     NUM_ROUND_DECIMALS)
-    if stock_data.effective_peg_ratio                                   != None: stock_data.effective_peg_ratio                                   = round(stock_data.effective_peg_ratio,                                   NUM_ROUND_DECIMALS)
-    if stock_data.annualized_cash_flow_from_operating_activities        != None: stock_data.annualized_cash_flow_from_operating_activities        = round(stock_data.annualized_cash_flow_from_operating_activities,        NUM_ROUND_DECIMALS)
-    if stock_data.annualized_cash_flow_from_operating_activities_bonus  != None: stock_data.annualized_cash_flow_from_operating_activities_bonus  = round(stock_data.annualized_cash_flow_from_operating_activities_bonus,  NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_cash_flow_from_operating_activities       != None: stock_data.quarterized_cash_flow_from_operating_activities       = round(stock_data.quarterized_cash_flow_from_operating_activities,       NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_cash_flow_from_operating_activities_bonus != None: stock_data.quarterized_cash_flow_from_operating_activities_bonus = round(stock_data.quarterized_cash_flow_from_operating_activities_bonus, NUM_ROUND_DECIMALS)
-    if stock_data.annualized_ev_to_cfo_ratio                            != None: stock_data.annualized_ev_to_cfo_ratio                            = round(stock_data.annualized_ev_to_cfo_ratio,                            NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_ev_to_cfo_ratio                           != None: stock_data.quarterized_ev_to_cfo_ratio                           = round(stock_data.quarterized_ev_to_cfo_ratio,                           NUM_ROUND_DECIMALS)
-    if stock_data.ev_to_cfo_ratio_effective                             != None: stock_data.ev_to_cfo_ratio_effective                             = round(stock_data.ev_to_cfo_ratio_effective,                             NUM_ROUND_DECIMALS)
-    if stock_data.annualized_debt_to_equity                             != None: stock_data.annualized_debt_to_equity                             = round(stock_data.annualized_debt_to_equity,                             NUM_ROUND_DECIMALS)
-    if stock_data.annualized_debt_to_equity_bonus                       != None: stock_data.annualized_debt_to_equity_bonus                       = round(stock_data.annualized_debt_to_equity_bonus,                       NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_debt_to_equity                            != None: stock_data.quarterized_debt_to_equity                            = round(stock_data.quarterized_debt_to_equity,                            NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_debt_to_equity_bonus                      != None: stock_data.quarterized_debt_to_equity_bonus                      = round(stock_data.quarterized_debt_to_equity_bonus,                      NUM_ROUND_DECIMALS)
-    if stock_data.debt_to_equity_effective                              != None: stock_data.debt_to_equity_effective                              = round(stock_data.debt_to_equity_effective,                              NUM_ROUND_DECIMALS)
-    if stock_data.debt_to_equity_effective_used                         != None: stock_data.debt_to_equity_effective_used                         = round(stock_data.debt_to_equity_effective_used,                         NUM_ROUND_DECIMALS)
-    if stock_data.financial_currency_conversion_rate_mult_to_usd        != None: stock_data.financial_currency_conversion_rate_mult_to_usd        = round(stock_data.financial_currency_conversion_rate_mult_to_usd,        NUM_ROUND_DECIMALS)
-    if stock_data.summary_currency_conversion_rate_mult_to_usd          != None: stock_data.summary_currency_conversion_rate_mult_to_usd          = round(stock_data.summary_currency_conversion_rate_mult_to_usd,          NUM_ROUND_DECIMALS)
-    if stock_data.last_dividend_0                                       != None: stock_data.last_dividend_0                                       = round(stock_data.last_dividend_0,                                       NUM_ROUND_DECIMALS)
-    if stock_data.last_dividend_1                                       != None: stock_data.last_dividend_1                                       = round(stock_data.last_dividend_1,                                       NUM_ROUND_DECIMALS)
-    if stock_data.last_dividend_2                                       != None: stock_data.last_dividend_2                                       = round(stock_data.last_dividend_2,                                       NUM_ROUND_DECIMALS)
-    if stock_data.last_dividend_3                                       != None: stock_data.last_dividend_3                                       = round(stock_data.last_dividend_3,                                       NUM_ROUND_DECIMALS)
-    if stock_data.fifty_two_week_change                                 != None: stock_data.fifty_two_week_change                                 = round(stock_data.fifty_two_week_change,                                 NUM_ROUND_DECIMALS)
-    if stock_data.fifty_two_week_low                                    != None: stock_data.fifty_two_week_low                                    = round(stock_data.fifty_two_week_low,                                    NUM_ROUND_DECIMALS)
-    if stock_data.fifty_two_week_high                                   != None: stock_data.fifty_two_week_high                                   = round(stock_data.fifty_two_week_high,                                   NUM_ROUND_DECIMALS)
-    if stock_data.two_hundred_day_average                               != None: stock_data.two_hundred_day_average                               = round(stock_data.two_hundred_day_average,                               NUM_ROUND_DECIMALS)
-    if stock_data.previous_close_percentage_from_200d_ma                != None: stock_data.previous_close_percentage_from_200d_ma                = round(stock_data.previous_close_percentage_from_200d_ma,                NUM_ROUND_DECIMALS)
-    if stock_data.previous_close_percentage_from_52w_low                != None: stock_data.previous_close_percentage_from_52w_low                = round(stock_data.previous_close_percentage_from_52w_low,                NUM_ROUND_DECIMALS)
-    if stock_data.previous_close_percentage_from_52w_high               != None: stock_data.previous_close_percentage_from_52w_high               = round(stock_data.previous_close_percentage_from_52w_high,               NUM_ROUND_DECIMALS)
-    if stock_data.dist_from_low_factor                                  != None: stock_data.dist_from_low_factor                                  = round(stock_data.dist_from_low_factor,                                  NUM_ROUND_DECIMALS)
-    if stock_data.eff_dist_from_low_factor                              != None: stock_data.eff_dist_from_low_factor                              = round(stock_data.eff_dist_from_low_factor,                              NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_ratio                                != None: stock_data.annualized_total_ratio                                = round(stock_data.annualized_total_ratio,                                NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_ratio_bonus                          != None: stock_data.annualized_total_ratio_bonus                          = round(stock_data.annualized_total_ratio_bonus,                          NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_ratio                               != None: stock_data.quarterized_total_ratio                               = round(stock_data.quarterized_total_ratio,                               NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_ratio_bonus                         != None: stock_data.quarterized_total_ratio_bonus                         = round(stock_data.quarterized_total_ratio_bonus,                         NUM_ROUND_DECIMALS)
-    if stock_data.annualized_other_current_ratio                        != None: stock_data.annualized_other_current_ratio                        = round(stock_data.annualized_other_current_ratio,                        NUM_ROUND_DECIMALS)
-    if stock_data.annualized_other_current_ratio_bonus                  != None: stock_data.annualized_other_current_ratio_bonus                  = round(stock_data.annualized_other_current_ratio_bonus,                  NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_other_current_ratio                       != None: stock_data.quarterized_other_current_ratio                       = round(stock_data.quarterized_other_current_ratio,                       NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_other_current_ratio_bonus                 != None: stock_data.quarterized_other_current_ratio_bonus                 = round(stock_data.quarterized_other_current_ratio_bonus,                 NUM_ROUND_DECIMALS)
-    if stock_data.annualized_other_ratio                                != None: stock_data.annualized_other_ratio                                = round(stock_data.annualized_other_ratio,                                NUM_ROUND_DECIMALS)
-    if stock_data.annualized_other_ratio_bonus                          != None: stock_data.annualized_other_ratio_bonus                          = round(stock_data.annualized_other_ratio_bonus,                          NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_other_ratio                               != None: stock_data.quarterized_other_ratio                               = round(stock_data.quarterized_other_ratio,                               NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_other_ratio_bonus                         != None: stock_data.quarterized_other_ratio_bonus                         = round(stock_data.quarterized_other_ratio_bonus,                         NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_current_ratio                        != None: stock_data.annualized_total_current_ratio                        = round(stock_data.annualized_total_current_ratio,                        NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_current_ratio_bonus                  != None: stock_data.annualized_total_current_ratio_bonus                  = round(stock_data.annualized_total_current_ratio_bonus,                  NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_current_ratio                       != None: stock_data.quarterized_total_current_ratio                       = round(stock_data.quarterized_total_current_ratio,                       NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_current_ratio_bonus                 != None: stock_data.quarterized_total_current_ratio_bonus                 = round(stock_data.quarterized_total_current_ratio_bonus,                 NUM_ROUND_DECIMALS)
-    if stock_data.total_ratio_effective                                 != None: stock_data.total_ratio_effective                                 = round(stock_data.total_ratio_effective,                                 NUM_ROUND_DECIMALS)
-    if stock_data.other_current_ratio_effective                         != None: stock_data.other_current_ratio_effective                         = round(stock_data.other_current_ratio_effective,                         NUM_ROUND_DECIMALS)
-    if stock_data.other_ratio_effective                                 != None: stock_data.other_ratio_effective                                 = round(stock_data.other_ratio_effective,                                 NUM_ROUND_DECIMALS)
-    if stock_data.total_current_ratio_effective                         != None: stock_data.total_current_ratio_effective                         = round(stock_data.total_current_ratio_effective,                         NUM_ROUND_DECIMALS)
-    if stock_data.effective_current_ratio                               != None: stock_data.effective_current_ratio                               = round(stock_data.effective_current_ratio,                               NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_assets                               != None: stock_data.annualized_total_assets                               = round(stock_data.annualized_total_assets,                               NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_assets_bonus                         != None: stock_data.annualized_total_assets_bonus                         = round(stock_data.annualized_total_assets_bonus,                         NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_assets                              != None: stock_data.quarterized_total_assets                              = round(stock_data.quarterized_total_assets,                              NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_assets_bonus                        != None: stock_data.quarterized_total_assets_bonus                        = round(stock_data.quarterized_total_assets_bonus,                        NUM_ROUND_DECIMALS)
-    if stock_data.effective_total_assets                                != None: stock_data.effective_total_assets                                = round(stock_data.effective_total_assets,                                NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_stockholder_equity                   != None: stock_data.annualized_total_stockholder_equity                   = round(stock_data.annualized_total_stockholder_equity,                   NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_stockholder_equity_bonus             != None: stock_data.annualized_total_stockholder_equity_bonus             = round(stock_data.annualized_total_stockholder_equity_bonus,             NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_stockholder_equity                  != None: stock_data.quarterized_total_stockholder_equity                  = round(stock_data.quarterized_total_stockholder_equity,                  NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_stockholder_equity_bonus            != None: stock_data.quarterized_total_stockholder_equity_bonus            = round(stock_data.quarterized_total_stockholder_equity_bonus,            NUM_ROUND_DECIMALS)
-    if stock_data.effective_total_stockholder_equity                    != None: stock_data.effective_total_stockholder_equity                    = round(stock_data.effective_total_stockholder_equity,                    NUM_ROUND_DECIMALS)
-    if stock_data.calculated_roa                                        != None: stock_data.calculated_roa                                        = round(stock_data.calculated_roa,                                        NUM_ROUND_DECIMALS)
-    if stock_data.calculated_roe                                        != None: stock_data.calculated_roe                                        = round(stock_data.calculated_roe,                                        NUM_ROUND_DECIMALS)
-    if stock_data.annualized_working_capital                            != None: stock_data.annualized_working_capital                            = round(stock_data.annualized_working_capital,                            NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_working_capital                           != None: stock_data.quarterized_working_capital                           = round(stock_data.quarterized_working_capital,                           NUM_ROUND_DECIMALS)
-    if stock_data.effective_working_capital                             != None: stock_data.effective_working_capital                             = round(stock_data.effective_working_capital,                             NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_liabilities                          != None: stock_data.annualized_total_liabilities                          = round(stock_data.annualized_total_liabilities,                          NUM_ROUND_DECIMALS)
-    if stock_data.annualized_total_liabilities_bonus                    != None: stock_data.annualized_total_liabilities_bonus                    = round(stock_data.annualized_total_liabilities_bonus,                    NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_liabilities                         != None: stock_data.quarterized_total_liabilities                         = round(stock_data.quarterized_total_liabilities,                         NUM_ROUND_DECIMALS)
-    if stock_data.quarterized_total_liabilities_bonus                   != None: stock_data.quarterized_total_liabilities_bonus                   = round(stock_data.quarterized_total_liabilities_bonus,                   NUM_ROUND_DECIMALS)
-    if stock_data.effective_total_liabilities                           != None: stock_data.effective_total_liabilities                           = round(stock_data.effective_total_liabilities,                           NUM_ROUND_DECIMALS)
-    if stock_data.altman_z_score_factor                                 != None: stock_data.altman_z_score_factor                                 = round(stock_data.altman_z_score_factor,                                 NUM_ROUND_DECIMALS)
+    int_fields = {'employees', 'enterprise_value', 'market_cap'}
 
-    # TODO: ASAFR: Unify below with above to single line for each parameter
-    if stock_data.sss_value                                             is None: stock_data.sss_value                                             = BAD_SSS
-    if stock_data.annualized_revenue                                    is None: stock_data.annualized_revenue                                    = 0
-    if stock_data.annualized_revenue_bonus                              is None: stock_data.annualized_revenue_bonus                              = 0.0
-    if stock_data.annualized_earnings                                   is None: stock_data.annualized_earnings                                   = 0
-    if stock_data.annualized_retained_earnings                          is None: stock_data.annualized_retained_earnings                          = 0
-    if stock_data.annualized_retained_earnings_bonus                    is None: stock_data.annualized_retained_earnings_bonus                    = 0.0
-    if stock_data.quarterized_revenue                                   is None: stock_data.quarterized_revenue                                   = 0
-    if stock_data.quarterized_revenue_bonus                             is None: stock_data.quarterized_revenue_bonus                             = 0.0
-    if stock_data.quarterized_earnings                                  is None: stock_data.quarterized_earnings                                  = 0
-    if stock_data.quarterized_earnings_bonus                            is None: stock_data.quarterized_earnings_bonus                            = 0.0
-    if stock_data.quarterized_retained_earnings                         is None: stock_data.quarterized_retained_earnings                         = 0
-    if stock_data.quarterized_retained_earnings_bonus                   is None: stock_data.quarterized_retained_earnings_bonus                   = 0.0
-    if stock_data.effective_earnings                                    is None: stock_data.effective_earnings                                    = 0
-    if stock_data.effective_retained_earnings                           is None: stock_data.effective_retained_earnings                           = 0
-    if stock_data.effective_revenue                                     is None: stock_data.effective_revenue                                     = 0
-    if stock_data.annualized_total_revenue                              is None: stock_data.annualized_total_revenue                              = 0
-    if stock_data.annualized_total_revenue_bonus                        is None: stock_data.annualized_total_revenue_bonus                        = 0.0
-    if stock_data.annualized_net_income                                 is None: stock_data.annualized_net_income                                 = 0
-    if stock_data.quarterized_total_revenue                             is None: stock_data.quarterized_total_revenue                             = 0
-    if stock_data.quarterized_total_revenue_bonus                       is None: stock_data.quarterized_total_revenue_bonus                       = 0.0
-    if stock_data.quarterized_net_income                                is None: stock_data.quarterized_net_income                                = 0
-    if stock_data.quarterized_net_income_bonus                          is None: stock_data.quarterized_net_income_bonus                          = 0.0
-    if stock_data.effective_net_income                                  is None: stock_data.effective_net_income                                  = 0
-    if stock_data.effective_total_revenue                               is None: stock_data.effective_total_revenue                               = 0
-    if stock_data.enterprise_value_to_revenue                           is None: stock_data.enterprise_value_to_revenue                           = 0
-    if stock_data.evr_effective                                         is None: stock_data.evr_effective                                         = 0.0
-    if stock_data.trailing_price_to_earnings                            is None: stock_data.trailing_price_to_earnings                            = 0
-    if stock_data.forward_price_to_earnings                             is None: stock_data.forward_price_to_earnings                             = 0
-    if stock_data.effective_price_to_earnings                           is None: stock_data.effective_price_to_earnings                           = 0
-    if stock_data.trailing_12months_price_to_sales                      is None: stock_data.trailing_12months_price_to_sales                      = 0
-    if stock_data.pe_effective                                          is None: stock_data.pe_effective                                          = 0
-    if stock_data.enterprise_value_to_ebitda                            is None: stock_data.enterprise_value_to_ebitda                            = 0
-    if stock_data.effective_ev_to_ebitda                                is None: stock_data.effective_ev_to_ebitda                                = 0
-    if stock_data.ebitda                                                is None: stock_data.ebitda                                                = 0
-    if stock_data.quarterized_ebitd                                     is None: stock_data.quarterized_ebitd                                     = 0
-    if stock_data.annualized_ebitd                                      is None: stock_data.annualized_ebitd                                      = 0
-    if stock_data.ebitd                                                 is None: stock_data.ebitd                                                 = 0
-    if stock_data.profit_margin                                         is None: stock_data.profit_margin                                         = 0
-    if stock_data.annualized_profit_margin                              is None: stock_data.annualized_profit_margin                              = 0
-    if stock_data.annualized_profit_margin_boost                        is None: stock_data.annualized_profit_margin_boost                        = 0
-    if stock_data.quarterized_profit_margin                             is None: stock_data.quarterized_profit_margin                             = 0
-    if stock_data.quarterized_profit_margin_boost                       is None: stock_data.quarterized_profit_margin_boost                       = 0
-    if stock_data.effective_profit_margin                               is None: stock_data.effective_profit_margin                               = 0
-    if stock_data.held_percent_institutions                             is None: stock_data.held_percent_institutions                             = 0
-    if stock_data.held_percent_insiders                                 is None: stock_data.held_percent_insiders                                 = 0
-    if stock_data.forward_eps                                           is None: stock_data.forward_eps                                           = 0
-    if stock_data.trailing_eps                                          is None: stock_data.trailing_eps                                          = 0
-    if stock_data.previous_close                                        is None: stock_data.previous_close                                        = 0
-    if stock_data.trailing_eps_percentage                               is None: stock_data.trailing_eps_percentage                               = 0
-    if stock_data.price_to_book                                         is None: stock_data.price_to_book                                         = 0
-    if stock_data.shares_outstanding                                    is None: stock_data.shares_outstanding                                    = 0
-    if stock_data.net_income_to_common_shareholders                     is None: stock_data.net_income_to_common_shareholders                     = 0
-    if stock_data.nitcsh_to_shares_outstanding                          is None: stock_data.nitcsh_to_shares_outstanding                          = 0
-    if stock_data.employees                                             is None: stock_data.employees                                             = 0
-    if stock_data.enterprise_value                                      is None: stock_data.enterprise_value                                      = 0
-    if stock_data.market_cap                                            is None: stock_data.market_cap                                            = 0
-    if stock_data.nitcsh_to_num_employees                               is None: stock_data.nitcsh_to_num_employees                               = 0
-    if stock_data.eqg                                                   is None: stock_data.eqg                                                   = 0
-    if stock_data.rqg                                                   is None: stock_data.rqg                                                   = 0
-    if stock_data.eqg_yoy                                               is None: stock_data.eqg_yoy                                               = 0
-    if stock_data.rqg_yoy                                               is None: stock_data.rqg_yoy                                               = 0
-    if stock_data.niqg_yoy                                              is None: stock_data.niqg_yoy                                              = 0
-    if stock_data.trqg_yoy                                              is None: stock_data.trqg_yoy                                              = 0
-    if stock_data.eqg_effective                                         is None: stock_data.eqg_effective                                         = 0
-    if stock_data.eqg_factor_effective                                  is None: stock_data.eqg_factor_effective                                  = 0
-    if stock_data.rqg_effective                                         is None: stock_data.rqg_effective                                         = 0
-    if stock_data.rqg_factor_effective                                  is None: stock_data.rqg_factor_effective                                  = 0
-    if stock_data.price_to_earnings_to_growth_ratio                     is None: stock_data.price_to_earnings_to_growth_ratio                     = 0
-    if stock_data.effective_peg_ratio                                   is None: stock_data.effective_peg_ratio                                   = 0
-    if stock_data.annualized_cash_flow_from_operating_activities        is None: stock_data.annualized_cash_flow_from_operating_activities        = 0
-    if stock_data.annualized_cash_flow_from_operating_activities_bonus  is None: stock_data.annualized_cash_flow_from_operating_activities_bonus  = 0.0
-    if stock_data.quarterized_cash_flow_from_operating_activities       is None: stock_data.quarterized_cash_flow_from_operating_activities       = 0
-    if stock_data.quarterized_cash_flow_from_operating_activities_bonus is None: stock_data.quarterized_cash_flow_from_operating_activities_bonus = 0.0
-    if stock_data.annualized_ev_to_cfo_ratio                            is None: stock_data.annualized_ev_to_cfo_ratio                            = 0
-    if stock_data.quarterized_ev_to_cfo_ratio                           is None: stock_data.quarterized_ev_to_cfo_ratio                           = 0
-    if stock_data.ev_to_cfo_ratio_effective                             is None: stock_data.ev_to_cfo_ratio_effective                             = 0
-    if stock_data.annualized_debt_to_equity                             is None: stock_data.annualized_debt_to_equity                             = 0
-    if stock_data.annualized_debt_to_equity_bonus                       is None: stock_data.annualized_debt_to_equity_bonus                       = 0.0
-    if stock_data.quarterized_debt_to_equity                            is None: stock_data.quarterized_debt_to_equity                            = 0
-    if stock_data.quarterized_debt_to_equity_bonus                      is None: stock_data.quarterized_debt_to_equity_bonus                      = 0.0
-    if stock_data.debt_to_equity_effective                              is None: stock_data.debt_to_equity_effective                              = 0
-    if stock_data.debt_to_equity_effective_used                         is None: stock_data.debt_to_equity_effective_used                         = 0
-    if stock_data.financial_currency_conversion_rate_mult_to_usd        is None: stock_data.financial_currency_conversion_rate_mult_to_usd        = 0
-    if stock_data.summary_currency_conversion_rate_mult_to_usd          is None: stock_data.summary_currency_conversion_rate_mult_to_usd          = 0
-    if stock_data.last_dividend_0                                       is None: stock_data.last_dividend_0                                       = 0
-    if stock_data.last_dividend_1                                       is None: stock_data.last_dividend_1                                       = 0
-    if stock_data.last_dividend_2                                       is None: stock_data.last_dividend_2                                       = 0
-    if stock_data.last_dividend_3                                       is None: stock_data.last_dividend_3                                       = 0
-    if stock_data.fifty_two_week_change                                 is None: stock_data.fifty_two_week_change                                 = 0
-    if stock_data.fifty_two_week_low                                    is None: stock_data.fifty_two_week_low                                    = 0
-    if stock_data.fifty_two_week_high                                   is None: stock_data.fifty_two_week_high                                   = 0
-    if stock_data.two_hundred_day_average                               is None: stock_data.two_hundred_day_average                               = 0
-    if stock_data.previous_close_percentage_from_200d_ma                is None: stock_data.previous_close_percentage_from_200d_ma                = 0
-    if stock_data.previous_close_percentage_from_52w_low                is None: stock_data.previous_close_percentage_from_52w_low                = 0
-    if stock_data.previous_close_percentage_from_52w_high               is None: stock_data.previous_close_percentage_from_52w_high               = 0
-    if stock_data.dist_from_low_factor                                  is None: stock_data.dist_from_low_factor                                  = 0
-    if stock_data.eff_dist_from_low_factor                              is None: stock_data.eff_dist_from_low_factor                              = 0
-    if stock_data.annualized_total_ratio                                is None: stock_data.annualized_total_ratio                                = 0
-    if stock_data.annualized_total_ratio_bonus                          is None: stock_data.annualized_total_ratio_bonus                          = 0.0
-    if stock_data.quarterized_total_ratio                               is None: stock_data.quarterized_total_ratio                               = 0
-    if stock_data.quarterized_total_ratio_bonus                         is None: stock_data.quarterized_total_ratio_bonus                         = 0.0
-    if stock_data.annualized_other_current_ratio                        is None: stock_data.annualized_other_current_ratio                        = 0
-    if stock_data.annualized_other_current_ratio_bonus                  is None: stock_data.annualized_other_current_ratio_bonus                  = 0.0
-    if stock_data.quarterized_other_current_ratio                       is None: stock_data.quarterized_other_current_ratio                       = 0
-    if stock_data.quarterized_other_current_ratio_bonus                 is None: stock_data.quarterized_other_current_ratio_bonus                 = 0.0
-    if stock_data.annualized_other_ratio                                is None: stock_data.annualized_other_ratio                                = 0
-    if stock_data.annualized_other_ratio_bonus                          is None: stock_data.annualized_other_ratio_bonus                          = 0.0
-    if stock_data.quarterized_other_ratio                               is None: stock_data.quarterized_other_ratio                               = 0
-    if stock_data.quarterized_other_ratio_bonus                         is None: stock_data.quarterized_other_ratio_bonus                         = 0.0
-    if stock_data.annualized_total_current_ratio                        is None: stock_data.annualized_total_current_ratio                        = 0
-    if stock_data.annualized_total_current_ratio_bonus                  is None: stock_data.annualized_total_current_ratio_bonus                  = 0.0
-    if stock_data.quarterized_total_current_ratio                       is None: stock_data.quarterized_total_current_ratio                       = 0
-    if stock_data.quarterized_total_current_ratio_bonus                 is None: stock_data.quarterized_total_current_ratio_bonus                 = 0.0
-    if stock_data.total_ratio_effective                                 is None: stock_data.total_ratio_effective                                 = 0
-    if stock_data.other_current_ratio_effective                         is None: stock_data.other_current_ratio_effective                         = 0
-    if stock_data.other_ratio_effective                                 is None: stock_data.other_ratio_effective                                 = 0
-    if stock_data.total_current_ratio_effective                         is None: stock_data.total_current_ratio_effective                         = 0
-    if stock_data.effective_current_ratio                               is None: stock_data.effective_current_ratio                               = 0
-    if stock_data.annualized_total_assets                               is None: stock_data.annualized_total_assets                               = 0
-    if stock_data.annualized_total_assets_bonus                         is None: stock_data.annualized_total_assets_bonus                         = 0.0
-    if stock_data.quarterized_total_assets                              is None: stock_data.quarterized_total_assets                              = 0
-    if stock_data.quarterized_total_assets_bonus                        is None: stock_data.quarterized_total_assets_bonus                        = 0.0
-    if stock_data.effective_total_assets                                is None: stock_data.effective_total_assets                                = 0
-    if stock_data.annualized_total_stockholder_equity                   is None: stock_data.annualized_total_stockholder_equity                   = 0
-    if stock_data.annualized_total_stockholder_equity_bonus             is None: stock_data.annualized_total_stockholder_equity_bonus             = 0.0
-    if stock_data.quarterized_total_stockholder_equity                  is None: stock_data.quarterized_total_stockholder_equity                  = 0
-    if stock_data.quarterized_total_stockholder_equity_bonus            is None: stock_data.quarterized_total_stockholder_equity_bonus            = 0.0
-    if stock_data.effective_total_stockholder_equity                    is None: stock_data.effective_total_stockholder_equity                    = 0
-    if stock_data.calculated_roa                                        is None: stock_data.calculated_roa                                        = 0
-    if stock_data.calculated_roe                                        is None: stock_data.calculated_roe                                        = 0
-    if stock_data.annualized_working_capital                            is None: stock_data.annualized_working_capital                            = 0
-    if stock_data.quarterized_working_capital                           is None: stock_data.quarterized_working_capital                           = 0
-    if stock_data.effective_working_capital                             is None: stock_data.effective_working_capital                             = 0
-    if stock_data.annualized_total_liabilities                          is None: stock_data.annualized_total_liabilities                          = 0
-    if stock_data.annualized_total_liabilities_bonus                    is None: stock_data.annualized_total_liabilities_bonus                    = 0.0
-    if stock_data.quarterized_total_liabilities                         is None: stock_data.quarterized_total_liabilities                         = 0
-    if stock_data.quarterized_total_liabilities_bonus                   is None: stock_data.quarterized_total_liabilities_bonus                   = 0.0
-    if stock_data.effective_total_liabilities                           is None: stock_data.effective_total_liabilities                           = 0
-    if stock_data.altman_z_score_factor                                 is None: stock_data.altman_z_score_factor                                 = 0
-
+    for field in fields(stock_data):
+        val = getattr(stock_data, field.name)
+        if isinstance(val, str):
+            continue
+        if val is None or (isinstance(val, float) and math.isnan(val)):
+            setattr(stock_data, field.name, BAD_SSS if field.name == 'sss_value' else 0)
+        elif isinstance(val, (int, float)):
+            if field.name in int_fields:
+                setattr(stock_data, field.name, int(val))
+            else:
+                setattr(stock_data, field.name, round(val, NUM_ROUND_DECIMALS))
 
 def calculate_weighted_stock_data_on_dict(dict_input, dict_name, str_in_dict, weights, stock_data, reverse_required, force_only_sum=False, bonus_all_pos=1.0, bonus_all_neg=1.0, bonus_mon_inc=1.0, bonus_mon_dec=1.0, bonus_neg_pres=1.0):
     if VERBOSE_LOGS > 2: print("[{} calculate_weighted_stock_data_on_dict]".format(__name__), end='')
@@ -1620,8 +1363,9 @@ def process_info(yq_mode, json_db, symbol, stock_data, tase_mode, sectors_list, 
                 assetProfile                      = None
                 incomeStatementHistoryYearly      = if_str_return_none(symbol.income_statement(frequency='a'))
                 incomeStatementHistoryQuarterly   = if_str_return_none(symbol.income_statement(frequency='q'))
-                # DEBUG - remove after fix
-                print(f"DEBUG income yearly type={type(incomeStatementHistoryYearly)} empty={incomeStatementHistoryYearly.empty if hasattr(incomeStatementHistoryYearly, 'empty') else 'N/A'} len={len(incomeStatementHistoryYearly)}")
+                # DEBUG - 
+                if sss_config.DEBUG_MODE:
+                    print(f"DEBUG income yearly type={type(incomeStatementHistoryYearly)} empty={incomeStatementHistoryYearly.empty if hasattr(incomeStatementHistoryYearly, 'empty') else 'N/A'} len={len(incomeStatementHistoryYearly)}")
                 quoteType                         = None
 
                 if 'defaultKeyStatistics'              in symbol.all_modules[stock_data.symbol.replace('.','-') if not tase_mode else stock_data.symbol]: defaultKeyStatistics              = symbol.all_modules[stock_data.symbol.replace('.','-') if not tase_mode else stock_data.symbol]['defaultKeyStatistics']
@@ -1790,10 +1534,12 @@ def process_info(yq_mode, json_db, symbol, stock_data, tase_mode, sectors_list, 
                 
                 if not incomeStatementHistoryYearly.empty:
                     annual_only = incomeStatementHistoryYearly[incomeStatementHistoryYearly['periodType'] == '12M']
-                        # DEBUG
-                    print(f"DEBUG annual_only rows={len(annual_only)} columns={list(annual_only.columns[:5])}")
+                    # DEBUG
+                    if sss_config.DEBUG_MODE:
+                        print(f"DEBUG annual_only rows={len(annual_only)} columns={list(annual_only.columns[:5])}")
                     for list_element_dict in annual_only.to_dict('records'):
-                        print(f"DEBUG asOfDate={str(list_element_dict['asOfDate'])} type={type(str(list_element_dict['asOfDate']))} NetIncome={'NetIncome' in list_element_dict}")
+                        if sss_config.DEBUG_MODE:
+                            print(f"DEBUG asOfDate={str(list_element_dict['asOfDate'])} type={type(str(list_element_dict['asOfDate']))} NetIncome={'NetIncome' in list_element_dict}")
                         total_revenue_yearly_yq.append(list_element_dict['TotalRevenue'])                        
                         financials_yearly_yq[str(list_element_dict["asOfDate"])] = {}
                         if "PretaxIncome" in list_element_dict:
@@ -1939,7 +1685,7 @@ def process_info(yq_mode, json_db, symbol, stock_data, tase_mode, sectors_list, 
 
             financials_quarterly = financials_quarterly_yq
             financials_yearly    = financials_yearly_yq
-            
+
              # Save raw json db:
             json_db[stock_data.symbol] = {}
             json_db[stock_data.symbol]["info"]                     = info
@@ -3628,12 +3374,13 @@ def sss_run(yq_mode, reference_run, sectors_list, sectors_filter_out, countries_
             crash_and_continue_json_db_filename = open(sss_config.crash_and_continue_path + '/db.json')
             crash_and_continue_raw_data         = json.load(crash_and_continue_json_db_filename)
 
-        mode_str = 'Nsr' # Default is Nasdaq100+S&P500+Russel1000
-        if   read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_US:  mode_str = 'All'
-        elif read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_SIX: mode_str = 'Six'
-        elif read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_ST:  mode_str = 'St'
-        elif tase_mode:                                                      mode_str = 'Tase'
-        elif len(custom_portfolio):                                          mode_str = 'Custom'
+        mode_str = 'Nsr'  # Default is Nasdaq100+S&P500+Russel1000
+        match read_all_country_symbols:
+            case sss_config.ALL_COUNTRY_SYMBOLS_US:  mode_str = 'All'
+            case sss_config.ALL_COUNTRY_SYMBOLS_SIX: mode_str = 'Six'
+            case sss_config.ALL_COUNTRY_SYMBOLS_ST:  mode_str = 'St'
+            case _ if tase_mode:                     mode_str = 'Tase'
+            case _ if len(custom_portfolio):         mode_str = 'Custom'
 
         tase_str = "_Tase" if tase_mode else ""
 
@@ -3650,10 +3397,11 @@ def sss_run(yq_mode, reference_run, sectors_list, sectors_filter_out, countries_
             if countries_filter_out: countries_list += 'FO_'
             countries_str += '_' + '_'.join(countries_list).replace(' ', '')
 
-        all_str               = ""
-        if   read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_US:  all_str  = '_A'
-        elif read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_SIX: all_str  = '_S'
-        elif read_all_country_symbols == sss_config.ALL_COUNTRY_SYMBOLS_ST:  all_str  = '_St'
+        all_str = ""
+        match read_all_country_symbols:
+            case sss_config.ALL_COUNTRY_SYMBOLS_US:  all_str = '_A'
+            case sss_config.ALL_COUNTRY_SYMBOLS_SIX: all_str = '_S'
+            case sss_config.ALL_COUNTRY_SYMBOLS_ST:  all_str = '_St'
 
         custom_portfolio_str = '_Custom'   if len(custom_portfolio)                else ""
         custom_sss_value_str = "_CustSssV" if sss_config.custom_sss_value_equation else ""

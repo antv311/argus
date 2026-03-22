@@ -75,3 +75,6 @@ research_mode_probe_list = []  # ['TLV:MMAN']  # ['TLV:MISH']  # ['MTDS']
 
 yq_mode = True
 
+DEBUG_MODE = False
+
+
