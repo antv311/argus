@@ -1939,6 +1939,19 @@ def process_info(yq_mode, json_db, symbol, stock_data, tase_mode, sectors_list, 
 
             financials_quarterly = financials_quarterly_yq
             financials_yearly    = financials_yearly_yq
+            
+             # Save raw json db:
+            json_db[stock_data.symbol] = {}
+            json_db[stock_data.symbol]["info"]                     = info
+            json_db[stock_data.symbol]["cash_flows_yearly"]        = cash_flows_yearly
+            json_db[stock_data.symbol]["cash_flows_quarterly"]     = cash_flows_quarterly
+            json_db[stock_data.symbol]["balance_sheets_yearly"]    = balance_sheets_yearly
+            json_db[stock_data.symbol]["balance_sheets_quarterly"] = balance_sheets_quarterly
+            json_db[stock_data.symbol]["earnings_yearly"]          = earnings_yearly
+            json_db[stock_data.symbol]["earnings_quarterly"]       = earnings_quarterly
+            json_db[stock_data.symbol]["financials_yearly"]        = financials_yearly
+            json_db[stock_data.symbol]["financials_quarterly"]     = financials_quarterly
+
         if 'shortName' in info: stock_data.short_name = info['shortName']
         else:                   stock_data.short_name = 'None'
 
