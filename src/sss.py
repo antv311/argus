@@ -82,49 +82,45 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-VERBOSE_LOGS = 0
+# All scoring constants moved to sss_config.py
+from sss_config import (
+    VERBOSE_LOGS, SKIP_5LETTER_Y_STOCK_LISTINGS, NUM_ROUND_DECIMALS,
+    NUM_EMPLOYEES_UNKNOWN, PROFIT_MARGIN_UNKNOWN, PRICE_TO_BOOK_UNKNOWN,
+    PERCENT_HELD_INSTITUTIONS_LOW, PERCENT_HELD_INSIDERS_UNKNOWN,
+    PEG_UNKNOWN, QEG_MAX, REG_MAX, SHARES_OUTSTANDING_UNKNOWN, BAD_SSS,
+    PROFIT_MARGIN_WEIGHTS, PROFIT_MARGIN_YEARLY_WEIGHTS, PROFIT_MARGIN_QUARTERLY_WEIGHTS,
+    CASH_FLOW_WEIGHTS, REVENUES_WEIGHTS, NO_WEIGHTS, EARNINGS_WEIGHTS, BALANCE_SHEETS_WEIGHTS,
+    EQG_UNKNOWN, RQG_UNKNOWN, EQG_POSITIVE_FACTOR, RQG_POSITIVE_FACTOR,
+    EQG_WEIGHT_VS_YOY, RQG_WEIGHT_VS_YOY, EQG_DAMPER, RQG_DAMPER,
+    TRAILING_EPS_PERCENTAGE_DAMP_FACTOR, PROFIT_MARGIN_DAMPER, RATIO_DAMPER,
+    ROA_DAMPER, ROA_NEG_FACTOR, ROE_DAMPER, ROE_NEG_FACTOR,
+    REFERENCE_DB_MAX_VALUE_DIFF_FACTOR_THRESHOLD, QUARTERLY_YEARLY_MISSING_FACTOR,
+    NEGATIVE_ALTMAN_Z_FACTOR, MIN_REVENUE_FOR_0_REVENUE_DIV_BY_0_AVOIDANCE,
+    MAX_UNKNOWN_PE, MAX_UNKNOWN_EVR,
+    PROFIT_MARGIN_BOOST_FOR_PRESENCE_OF_ANNUAL_NEGATIVE_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_PRESENCE_OF_QUARTERLY_NEGATIVE_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_INCREASE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_INCREASE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_POSITIVE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_POSITIVE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_INCREASE_IN_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_INCREASE_IN_REVENUE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_INCREASE_IN_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_INCREASE_IN_REVENUE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_DECREASE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_DECREASE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_DECREASE_IN_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_ANNUAL_DECREASE_IN_REVENUE,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_DECREASE_IN_EARNINGS,
+    PROFIT_MARGIN_BOOST_FOR_CONTINUOUS_QUARTERLY_DECREASE_IN_REVENUE,
+    PROFIT_MARGIN_DUPLICATION_FACTOR,
+    NEGATIVE_CFO_FACTOR, NEGATIVE_PEG_RATIO_FACTOR, NEGATIVE_DEBT_TO_EQUITY_FACTOR,
+    NEGATIVE_EARNINGS_FACTOR, DEBT_TO_EQUITY_MIN_BASE,
+    FORWARD_PRICE_TO_EARNINGS_WEIGHT, TRAILING_PRICE_TO_EARNINGS_WEIGHT,
+    DIST_FROM_LOW_FACTOR_DAMPER, DIST_FROM_LOW_FACTOR_HIGHER_THAN_ONE_POWER,
+    EV_TO_EBITDA_MAX_UNKNOWN,
+)
 
-SKIP_5LETTER_Y_STOCK_LISTINGS                = False       # Skip ADRs - American Depositary receipts (5 Letter Stocks)
-NUM_ROUND_DECIMALS                           = 7
-NUM_EMPLOYEES_UNKNOWN                        = 10000000   # This will make the company very inefficient in terms of number of employees
-PROFIT_MARGIN_UNKNOWN                        = 0.00001    # This will make the company almost not profitable terms of profit margins, thus less attractive
-PRICE_TO_BOOK_UNKNOWN                        = 1000.0
-PERCENT_HELD_INSTITUTIONS_LOW                = 0.01       # low, to make less relevant
-PERCENT_HELD_INSIDERS_UNKNOWN                = 0.0000123  # Temporary check, TODO: ASAFR: Take some unknown value (low) instead for the actual usage in Schloss factor
-PEG_UNKNOWN                                  = 10000      # Use a non-attractive value
-QEG_MAX                                      = 10000
-REG_MAX                                      = 10000
-SHARES_OUTSTANDING_UNKNOWN                   = 100000000  # 100 Million Shares - just a value for calculation of a currently unused vaue
-BAD_SSS                                      = 10.0 ** 50.0
-PROFIT_MARGIN_WEIGHTS                        = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-PROFIT_MARGIN_YEARLY_WEIGHTS                 = [1.0, 4.0, 16,  64,  256,  1024, 4096, 16384, 4*16384, 16*16384]  # from oldest to newest
-PROFIT_MARGIN_QUARTERLY_WEIGHTS              = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-CASH_FLOW_WEIGHTS                            = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-REVENUES_WEIGHTS                             = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-NO_WEIGHTS                                   = [1.0, 1.0, 1.0, 1.0,  1.0,  1.0,  1.0,   1.0,   1.0,     1.0]  # from oldest to newest
-EARNINGS_WEIGHTS                             = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-BALANCE_SHEETS_WEIGHTS                       = [1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0,   512.0]  # from oldest to newest
-EQG_UNKNOWN                                  = -0.9   # -90% TODO: ASAFR: 1. Scan (like pm and ever) values of eqg for big data research better recommendations
-RQG_UNKNOWN                                  = -0.9   # -90% TODO: ASAFR: 1. Scan (like pm and ever) values of rqg for big data research better recommendations
-EQG_POSITIVE_FACTOR                          = 10.0   # When positive, it will have a 5x factor on the 1 + function
-RQG_POSITIVE_FACTOR                          = 10.0   # When positive, it will have a 5x factor on the 1 + function
-EQG_WEIGHT_VS_YOY                            = 0.75   # the provided EQG is weighted more than the manually calculated one
-RQG_WEIGHT_VS_YOY                            = 0.75   # the provided RQG (yfinance now provides it) is weighted more than the manually calculated one
-EQG_DAMPER                                   = 0.25
-RQG_DAMPER                                   = 0.25
-TRAILING_EPS_PERCENTAGE_DAMP_FACTOR          = 0.01  # When the trailing_eps_percentage is very low (units are ratio here), this damper shall limit the affect to x100 not more)
-PROFIT_MARGIN_DAMPER                         = 0.001 # When the profit_margin                   is very low (units are ratio here), this damper shall limit the affect to x100 not more)
-RATIO_DAMPER                                 = 0.01  # When the total/current_other_other ratio is very low (units are ratio here), this damper shall limit the affect to x100 not more)
-ROA_DAMPER                                   = 0.1   # When the ROA is very low (units are ratio here), this damper shall limit the affect to x50 not more)
-ROA_NEG_FACTOR                               = 0.000001
-ROE_DAMPER                                   = 0.1   # When the ROE is very low (units are ratio here), this damper shall limit the affect to x50 not more)
-ROE_NEG_FACTOR                               = 0.000001
-REFERENCE_DB_MAX_VALUE_DIFF_FACTOR_THRESHOLD = 0.9   # if there is a parameter difference from reference db, in which the difference of values is higher than 0.75*abs(max_value) then something went wrong with the fetch of values from yfinance. Compensate smartly from reference database
-QUARTERLY_YEARLY_MISSING_FACTOR              = 0.25  # if either yearly or quarterly values are missing - compensate by other with bad factor (less information means less attractive)
-NEGATIVE_ALTMAN_Z_FACTOR                     = 0.00001
-MIN_REVENUE_FOR_0_REVENUE_DIV_BY_0_AVOIDANCE = 0.001
-MAX_UNKNOWN_PE                               = 100000
-MAX_UNKNOWN_EVR                              = 100000
 
 # TODO: ASAFR: All below boosters should be calibrated by:
 #              1. The rarety (statistically comapred to all the stocks in scan) - proportionaly to it (the rarest the case - the more boost)
@@ -641,7 +637,6 @@ g_quarterized_total_liabilities_bonus_index                   = g_header_row.ind
 g_effective_total_liabilities_index                           = g_header_row.index("effective_total_liabilities")
 g_altman_z_score_factor_index                                 = g_header_row.index("altman_z_score_factor")
 g_skip_reason_index                                           = g_header_row.index("skip_reason")
-
 g_symbol_index_n                                                = g_header_row_normalized.index("Symbol")
 g_name_index_n                                                  = g_header_row_normalized.index("Name")
 g_sector_index_n                                                = g_header_row_normalized.index("Sector")
@@ -968,8 +963,15 @@ def get_used_parameters_names_in_core_equation(custom_sss_value_equation):
         denominator_parameters_list = ["effective_profit_margin",  "effective_current_ratio",       "calculated_roa",       "calculated_roe",         "eqg_factor_effective",             "rqg_factor_effective", "altman_z_score_factor", "held_percent_insiders"                                     ]  # The higher the better
     return [numerator_parameters_list, denominator_parameters_list]
 
-def round_and_avoid_none_values(stock_data):
-    int_fields = {'employees', 'enterprise_value', 'market_cap'}
+def round_and_avoid_none_values(stock_data: 'StockData') -> None:
+    """
+    Normalize all numeric fields on a StockData instance:
+      - None or NaN  -> 0  (BAD_SSS for sss_value)
+      - int fields   -> int cast
+      - float fields -> rounded to NUM_ROUND_DECIMALS
+    Operates in-place. String fields are skipped.
+    """
+    INT_FIELDS = frozenset({'employees', 'enterprise_value', 'market_cap'})
 
     for field in fields(stock_data):
         val = getattr(stock_data, field.name)
@@ -978,7 +980,7 @@ def round_and_avoid_none_values(stock_data):
         if val is None or (isinstance(val, float) and math.isnan(val)):
             setattr(stock_data, field.name, BAD_SSS if field.name == 'sss_value' else 0)
         elif isinstance(val, (int, float)):
-            if field.name in int_fields:
+            if field.name in INT_FIELDS:
                 setattr(stock_data, field.name, int(val))
             else:
                 setattr(stock_data, field.name, round(val, NUM_ROUND_DECIMALS))
